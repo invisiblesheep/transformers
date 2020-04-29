@@ -16,7 +16,7 @@
 
 try:
     from scipy.stats import pearsonr, spearmanr
-    from sklearn.metrics import matthews_corrcoef, f1_score
+    from sklearn.metrics import matthews_corrcoef, f1_score, precision_score, recall_score
 
     _has_sklearn = True
 except (AttributeError, ImportError):
@@ -41,6 +41,19 @@ if _has_sklearn:
             "acc_and_f1": (acc + f1) / 2,
         }
 
+    def acc_prec_recall_and_f1(preds, labels):
+        acc = simple_accuracy(preds, labels)
+        f1 = f1_score(y_true=labels, y_pred=preds)
+        prec = precision_score(y_true=labels, y_pred=preds)
+        recall = recall_score(y_true=labels, y_pred=preds)
+        return {
+            "acc": acc,
+            "f1": f1,
+            "precision": prec,
+            "recall": recall,
+            "acc_and_f1": (acc + f1) / 2,
+        }
+
     def pearson_and_spearman(preds, labels):
         pearson_corr = pearsonr(preds, labels)[0]
         spearman_corr = spearmanr(preds, labels)[0]
@@ -53,7 +66,7 @@ if _has_sklearn:
     def glue_compute_metrics(task_name, preds, labels):
         assert len(preds) == len(labels)
         if task_name == "cola":
-            return {"mcc": matthews_corrcoef(labels, preds)}
+            return {"mcc": matthews_corrcoef(labels, preds), "f1": acc_prec_recall_and_f1(labels, preds)}
         elif task_name == "sst-2":
             return {"acc": simple_accuracy(preds, labels)}
         elif task_name == "mrpc":
